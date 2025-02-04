@@ -41,29 +41,22 @@ class Node:
         distance = 0 # distance for each tile to goal tile
         
         for i in range(0, pow(ROW_LENGTH, 2)):
-                tile = self.state[i]
+            for j in range(0, pow(ROW_LENGTH, 2)):
+                tile = self.state[i][j]
                 if tile != 0:
                     # finding the distance of how far away this tile is to it's goal position
-                    x, y = GOAL_STATE[tile]
+                    x, y = GOAL_POSITIONS[tile]
                     distance += abs(i - x) + abs(j - y)
         return distance
     
     def misplacedTiles(self):
         tiles = 0
         for i in range(0, pow(ROW_LENGTH, 2)):
-            tile = self.state[i]
-            if tile != 0 and tile != GOAL_VALUES[i]: # if the tile at state[i] i doesn't match goal[i] then increment counter
-                tiles += 1 
+            for j in range(0, pow(ROW_LENGTH, 2)):
+                tile = self.state[i][j]
+                if tile != 0 and tile != GOAL_VALUES[i][j]: # if the tile at state[i] i doesn't match goal[i] then increment counter
+                    tiles += 1 
         return tiles
-    
-    # def linearConflict(self):
-    #     conflicts = 0
-    #     for i in range(0, pow(ROW_LENGTH, 2)):
-    #         tile = self.state[i]
-    #         if tile != 0:
-    #             x, y = GOAL_STATE[tile]
-    #             if i == x:
-    #                 for k in range(col + )
     
 
                     
