@@ -1,28 +1,28 @@
 from heapq import heappush, heappop
 import random
 # dictionary to store values and indices of goal state.
-##Primary Goal State
-# GOAL_POSITIONS = {
-#             0 : (0,0), 1 : (0,1), 2 : (0,2),
-#             3 : (1,0), 4 : (1,1), 5 : (1,2),
-#             6 : (2,0), 7 : (2,1), 8 : (2,2)
-#                  } 
-# GOAL_VALUES = [
-#             [0, 1, 2], 
-#             [3, 4, 5], 
-#             [6, 7, 8]
-#                ]
-
+#Primary Goal State
 GOAL_POSITIONS = {
-            1 : (0,0), 2 : (0,1), 3 : (0,2),
-            4 : (1,0), 5 : (1,1), 6 : (1,2),
-            7 : (2,0), 8 : (2,1), 0 : (2,2)
+            0 : (0,0), 1 : (0,1), 2 : (0,2),
+            3 : (1,0), 4 : (1,1), 5 : (1,2),
+            6 : (2,0), 7 : (2,1), 8 : (2,2)
                  } 
 GOAL_VALUES = [
-            [1, 2, 3], 
-            [4, 5, 6], 
-            [7, 8, 0]
-               ]
+            [0, 1, 2], 
+            [3, 4, 5], 
+            [6, 7, 8]
+            ]
+
+# GOAL_POSITIONS = {
+#             1 : (0,0), 2 : (0,1), 3 : (0,2),
+#             4 : (1,0), 5 : (1,1), 6 : (1,2),
+#             7 : (2,0), 8 : (2,1), 0 : (2,2)
+#                  } 
+# GOAL_VALUES = [
+#             [1, 2, 3], 
+#             [4, 5, 6], 
+#             [7, 8, 0]
+#                ]
 ROW_LENGTH = 3
 
 MOVES = [
@@ -102,7 +102,7 @@ class Solver:
         for action, di, dj in MOVES: 
 
             newI = i + di # calculate new row position
-            newJ = j + dj #       and new col position
+            newJ = j + dj # and new col position
 
             if (0 <= newI < ROW_LENGTH) and (0 <= newJ < ROW_LENGTH): # make sure the [newI][newJ] exists inside puzzle 
 
@@ -142,7 +142,7 @@ class Solver:
                 return self.getPath(current)
             
             state_tup = tuple(map(tuple, current.state))
-            if state_tup in visited:
+            if state_tup in visited: # skip to next iteration as to not do same thing twice.
                 continue
             visited.add(state_tup)
             for neighbour in self.getNeighbours(current):
@@ -153,7 +153,7 @@ class Solver:
         while node.parent: # loop until the root node 
             path.append(node.action) # add every action to the path
             node = node.parent #point to parent node
-        return path[::-1] # since we worked from completed puzzle node to the root node, we must reverse the path.
+        return path[::-1] # since we worked from completed puzzle node to the root node, we must reverse the path and return it.
 
 def convert2D(nums): # converts a 1D array into a 2D array
     puzzle = []
@@ -193,11 +193,8 @@ def generateRandomPuzzle():
 
 
 if __name__ == "__main__":
-
     for i in range(100):
         generateRandomPuzzle()
-   
- 
     # initialState = [
     #     [6, 0, 5],
     #     [4, 8, 7],
@@ -211,8 +208,6 @@ if __name__ == "__main__":
     # else:
     #     print("NO SOLUTION")
 
-    # With h1
-    print("TESTING WITH HEURISTIC = MANHATTAN DISTANCE\n\n")
     for i in range(len(PUZZLES)):
         initial = PUZZLES[i]
         solve1 = Solver(initial, h="h1")
@@ -234,4 +229,4 @@ if __name__ == "__main__":
         else:
             print("NO SOLUTION\n")
         print("\n\n")
-    #With h2
+
