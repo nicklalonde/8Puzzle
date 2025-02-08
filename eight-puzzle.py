@@ -1,16 +1,28 @@
 from heapq import heappush, heappop
+import random
 # dictionary to store values and indices of goal state.
+##Primary Goal State
+# GOAL_POSITIONS = {
+#             0 : (0,0), 1 : (0,1), 2 : (0,2),
+#             3 : (1,0), 4 : (1,1), 5 : (1,2),
+#             6 : (2,0), 7 : (2,1), 8 : (2,2)
+#                  } 
+# GOAL_VALUES = [
+#             [0, 1, 2], 
+#             [3, 4, 5], 
+#             [6, 7, 8]
+#                ]
+
 GOAL_POSITIONS = {
-            0 : (0,0), 1 : (0,1), 2 : (0,2),
-            3 : (1,0), 4 : (1,1), 5 : (1,2),
-            6 : (2,0), 7 : (2,1), 8 : (2,2)
+            1 : (0,0), 2 : (0,1), 3 : (0,2),
+            4 : (1,0), 5 : (1,1), 6 : (1,2),
+            7 : (2,0), 8 : (2,1), 0 : (2,2)
                  } 
 GOAL_VALUES = [
-            [0, 1, 2], 
-            [3, 4, 5], 
-            [6, 7, 8]
+            [1, 2, 3], 
+            [4, 5, 6], 
+            [7, 8, 0]
                ]
-
 ROW_LENGTH = 3
 
 MOVES = [
@@ -20,6 +32,9 @@ MOVES = [
   ("right", 0, 1)
 ]
 
+#List of 100 puzzles.
+PUZZLES = []
+numPuzzles = 0
 class Node:
     def __init__(self, state, parent=None, action=None, g=0, h="h1"):
         self.state = state   # current state of puzzle
@@ -28,12 +43,13 @@ class Node:
         self.g = g           # the cost/depth from the start node to this node.
         
         # defining our h1, h2, and h3 heuristics
+        
         if h == "h1":
             self.h = self.manhattanDistance()
         elif h == "h2":
             self.h = self.misplacedTiles()
         # elif h == "h3":
-        #     self.h = self.linearConflict()
+        #     self.h = self.3rd()
         else:
             raise ValueError("Invalid heuristic")
 
@@ -68,10 +84,8 @@ class Solver:
     def __init__(self, initial_state, h="h1"): # constructor set default heuristic to h1
         self.initial_state = initial_state
         self.h = h
-    
-    def convert1D(self, state): # May convert arrays to 1d to improve efficiency. 
-        return [tile for row in state for tile in row]
-    
+        self.nodes_expanded = 0
+
     def find0(self, state): # find the 0 (blank) in the puzzle 
         for i in range(ROW_LENGTH):
             for j in range(ROW_LENGTH):
@@ -94,7 +108,7 @@ class Solver:
 
                 newState = [] # create list to copy rows from node
 
-                for row in node.state:
+                for row in node.state: # for every row in Node
                     newState.append(row[:]) # add the rows to newState
 
                 # swap the blank tile with the blank tile's new position (it's neighbour)
@@ -113,41 +127,111 @@ class Solver:
 
         while pq:
             _, current = heappop(pq) # grab the node with the lowest f value (best cost)
+
+            self.nodes_expanded += 1
             equals = True
 
             # compare every value in the current state with every value in the goal state.
-            for i in range(ROW_LENGTH):
-                for j in range(ROW_LENGTH):
-                    if current.state[i][j] != GOAL_VALUES[i][j]:
-                        equals = False
-                        break
-            if equals: # if every value is equal, we know we are at the right state and we can return the path
-                return self.reconstructPath(current)
+            # for i in range(ROW_LENGTH):
+            #     for j in range(ROW_LENGTH):
+            #         if current.state[i][j] != GOAL_VALUES[i][j]:
+            #             equals = False
+            #             break
+            # if equals: # if every value is equal, we know we are at the right state and we can return the path
+            if current.state == GOAL_VALUES:
+                return self.getPath(current)
             
-            visited.add(tuple(map(tuple, current.state)))
-
+            state_tup = tuple(map(tuple, current.state))
+            if state_tup in visited:
+                continue
+            visited.add(state_tup)
             for neighbour in self.getNeighbours(current):
-                if tuple(map(tuple, neighbour.state)) not in visited:
-                    heappush(pq, (neighbour.f, neighbour))
+                heappush(pq, (neighbour.f, neighbour))
         return None
-
-    def reconstructPath(self, node):
+    def getPath(self, node):
         path = []
-        while node.parent:
-          path.append(node.action)
-          node = node.parent
-        return path[::-1]
-      
-if __name__ == "__main__":
-    initial_state = [
-        [0, 8, 7],
-        [2, 1, 4],
-        [3, 6, 5]
-    ]
-    solve = Solver(initial_state, h="h2")
-    solution = solve.aStar()
+        while node.parent: # loop until the root node 
+            path.append(node.action) # add every action to the path
+            node = node.parent #point to parent node
+        return path[::-1] # since we worked from completed puzzle node to the root node, we must reverse the path.
 
-    if solution:
-        print("SOLUTION FOUND: ", solution)
-    else:
-        print("NO SOLUTION")
+def convert2D(nums): # converts a 1D array into a 2D array
+    puzzle = []
+    index = 0
+    for i in range(ROW_LENGTH):
+        puzzle.append([])
+        for _ in range(ROW_LENGTH):
+            puzzle[i].append(nums[index])
+            index += 1
+
+
+    return puzzle
+def isSolvable(nums):
+    solvable = False
+    count = 0
+    for i in range(len(nums)):
+        for j in range(i + 1, len(nums)):
+            if nums[i] > 0 and nums[j] > 0 and nums[i] > nums[j]:
+                count += 1
+    if count % 2 == 0:
+        solvable = True
+    return solvable
+    
+def generateRandomPuzzle():
+    global numPuzzles
+    while True:
+        nums = random.sample(range(0, 9), 9) # get random UNIQUE value between 0 and 8
+        if isSolvable(nums):
+            puzzle = convert2D(nums)
+            if puzzle in PUZZLES:
+                continue
+            PUZZLES.append(puzzle)
+            numPuzzles += 1
+            break
+       
+        
+
+
+if __name__ == "__main__":
+
+    for i in range(100):
+        generateRandomPuzzle()
+   
+ 
+    # initialState = [
+    #     [6, 0, 5],
+    #     [4, 8, 7],
+    #     [2, 1, 3]
+    # ]
+    # solve = Solver(initialState, h="h2")
+    # solution = solve.aStar()
+
+    # if solution:
+    #     print("SOLUTION FOUND: ", solution)
+    # else:
+    #     print("NO SOLUTION")
+
+    # With h1
+    print("TESTING WITH HEURISTIC = MANHATTAN DISTANCE\n\n")
+    for i in range(len(PUZZLES)):
+        initial = PUZZLES[i]
+        solve1 = Solver(initial, h="h1")
+        solve2 = Solver(initial, h="h2")
+        solution1 = solve1.aStar()
+        solution2 = solve2.aStar()
+        nodes1 = solve1.nodes_expanded
+        nodes2 = solve2.nodes_expanded
+        if solution1:
+            print("H1: MANHATTAN DISTANCE")
+            print(f"PUZZLE[{i + 1}]\n\n {PUZZLES[i]} - SOLUTION FOUND\nNODES EXPANDED = {nodes1}\n", solution1)
+            print("\n\n")
+        else:
+            print("NO SOLUTION\n")
+        if solution2:
+            print("H2: MISPLACED TILES")
+            print(f"PUZZLE[{i + 1}]\n\n {PUZZLES[i]} - SOLUTION FOUND\nNODES EXPANDED = {nodes2}\n", solution2)
+            print("\n\n")
+        else:
+            print("NO SOLUTION\n")
+        print("\n\n")
+    #With h2
