@@ -40,8 +40,8 @@ class Node:
         
         distance = 0 # distance for each tile to goal tile
         
-        for i in range(0, pow(ROW_LENGTH, 2)):
-            for j in range(0, pow(ROW_LENGTH, 2)):
+        for i in range(0, ROW_LENGTH):
+            for j in range(0, ROW_LENGTH):
                 tile = self.state[i][j]
                 if tile != 0:
                     # finding the distance of how far away this tile is to it's goal position
@@ -51,8 +51,8 @@ class Node:
     
     def misplacedTiles(self):
         tiles = 0
-        for i in range(0, pow(ROW_LENGTH, 2)):
-            for j in range(0, pow(ROW_LENGTH, 2)):
+        for i in range(0, ROW_LENGTH):
+            for j in range(0, ROW_LENGTH):
                 tile = self.state[i][j]
                 if tile != 0 and tile != GOAL_VALUES[i][j]: # if the tile at state[i] i doesn't match goal[i] then increment counter
                     tiles += 1 
